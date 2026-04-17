@@ -3,6 +3,8 @@ __pycache__/
 *.pyc
 *.pyo
 
+# ML folder
+ML/
 
 # IDE files
 .vscode/

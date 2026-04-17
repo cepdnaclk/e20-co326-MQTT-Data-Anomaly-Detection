@@ -1,6 +1,6 @@
 import paho.mqtt.client as mqtt
 import time
-from Data_Simulation import simulate_data
+from simulation import simulate_data
 
 ## this is edge device who makes the sensor 
 
