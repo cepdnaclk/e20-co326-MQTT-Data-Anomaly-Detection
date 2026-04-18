@@ -1,6 +1,6 @@
 import paho.mqtt.client as mqtt
 import time
-from simulation import simulate_data
+from simulation import simulate_data_for_ML_training
 
 ## this is edge device who makes the sensor 
 
@@ -9,30 +9,30 @@ PUB_TOPIC = "co326/sensor/data"
 
 def on_connect(client, userdata, flags, rc, properties=None):
     if rc == 0:
-        print("Connected successfully to broker.")
+        print("Publisher Connected successfully to broker.")
     else:
         print(f"Failed to connect, return code {rc}")
 
 
 # create client with mqtt5
-client = mqtt.Client(client_id="co326_publisher_client", protocol=mqtt.MQTTv5)
+publisher = mqtt.Client(client_id="co326_publisher_client", protocol=mqtt.MQTTv5)
 
 # bind callbacks
-client.on_connect = on_connect
+publisher.on_connect = on_connect
 
 # connect to broker.hivemq.com port 1883
-client.connect("broker.hivemq.com", 1883, 60)
+publisher.connect("broker.hivemq.com", 1883, 60)
 
 # start loop
-client.loop_start()
+publisher.loop_start()
 
 # Data simulation loop
 try:
     while True:
-        payload = simulate_data()
+        payload = simulate_data_for_ML_training()
 
         # Publish the simulated data
-        result = client.publish(PUB_TOPIC, payload)
+        result = publisher.publish(PUB_TOPIC, payload)
         
         status = result[0]   # status code  0>>success
         if status == 0:
@@ -44,5 +44,5 @@ try:
 except KeyboardInterrupt:
     print("Simulation stopped.")
 finally:
-    client.loop_stop()
-    client.disconnect()
+    publisher.loop_stop()
+    publisher.disconnect()
