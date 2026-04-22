@@ -1,6 +1,8 @@
 import random
 import time
 import json
+import paho.mqtt.client as mqtt
+
 
 def simulate_data():
     # sample iot data
@@ -70,7 +72,7 @@ def simulate_data_for_ML_training():
     data = {
         "temperature": temperature,
         "humidity": humidity,
-        "timestamp": time.time(),
+        #"timestamp": time.time(),
         "label": label
     }
 
@@ -81,3 +83,23 @@ def simulate_data_for_ML_training():
     print(payload)
 
     return payload
+
+
+
+# create publisher
+client = mqtt.Client()
+client.connect("localhost", 1883, 60)
+
+TOPIC = "iot/sensor"
+
+
+#loop
+while True:
+    try:
+        payload = simulate_data()
+        client.publish(TOPIC, payload)    # publish sensor data to mqtt broker
+        time.sleep(2)
+
+    except KeyboardInterrupt:
+        print("Manually stopped the sensor")
+        break

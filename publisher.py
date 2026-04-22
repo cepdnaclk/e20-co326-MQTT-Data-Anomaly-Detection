@@ -1,6 +1,6 @@
 import paho.mqtt.client as mqtt
 import time
-from simulation import simulate_data_for_ML_training
+from simulation import simulate_data
 
 ## this is edge device who makes the sensor 
 
@@ -29,7 +29,7 @@ publisher.loop_start()
 # Data simulation loop
 try:
     while True:
-        payload = simulate_data_for_ML_training()
+        payload = simulate_data()
 
         # Publish the simulated data
         result = publisher.publish(PUB_TOPIC, payload)
