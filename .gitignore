@@ -4,7 +4,7 @@ __pycache__/
 *.pyo
 
 # ML folder
-ML/
+
 
 # IDE files
 .vscode/
