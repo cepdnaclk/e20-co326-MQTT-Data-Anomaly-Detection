@@ -49,6 +49,14 @@ const influxWriteApi =
         influxOrg,
         influxBucket,
         "ms",
+        {
+          batchSize: 20,
+          flushInterval: 5000,
+          maxBufferLines: 1000,
+          maxRetries: 2,
+          minRetryDelay: 1000,
+          maxRetryDelay: 5000,
+        },
       )
     : null;
 
@@ -313,9 +321,6 @@ function writeToHistorian(data) {
     .timestamp(new Date(data.timestamp));
 
   influxWriteApi.writePoint(point);
-  influxWriteApi
-    .flush()
-    .catch((err) => console.error("InfluxDB Flush Error:", err.message));
 }
 
 function publishRelayCommand(command, requestedBy) {
