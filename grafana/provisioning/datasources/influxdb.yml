@@ -1,0 +1,15 @@
+apiVersion: 1
+
+datasources:
+  - name: InfluxDB-CO326
+    type: influxdb
+    access: proxy
+    url: http://influxdb:8086
+    isDefault: true
+    jsonData:
+      version: Flux
+      organization: co326
+      defaultBucket: industrial_data
+      tlsSkipVerify: true
+    secureJsonData:
+      token: co326-super-token
