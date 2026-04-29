@@ -57,6 +57,10 @@ function writeToHistorian(data) {
     .booleanField("anomaly", Boolean(data.anomaly))
     .timestamp(new Date(Number(data.timestamp) * 1000 || Date.now()));
 
+  if (typeof data.anomalyScore === "number") {
+    point.floatField("anomaly_score", data.anomalyScore);
+  }
+
   influxWriteApi.writePoint(point);
   influxWriteApi
     .flush()
@@ -84,13 +88,19 @@ client.on("message", async (topic, message) => {
           hum: rawData.humidity
       });
 
-      const { anomaly } = response.data;
+      const {
+        anomaly,
+        anomaly_score: anomalyScore = null,
+        model_profile: modelProfile = null,
+      } = response.data;
       latestRecord = {
         ...rawData,
         anomaly,
+        anomalyScore,
+        modelProfile,
       };
 
-      console.log(`Temp: ${rawData.temperature} | Anomaly: ${anomaly}`);
+      console.log(`Temp: ${rawData.temperature} | Anomaly: ${anomaly} | Score: ${anomalyScore}`);
       writeToHistorian(latestRecord);
 
       // real time data push to frontend

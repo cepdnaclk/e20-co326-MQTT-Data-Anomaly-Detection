@@ -1,0 +1,9 @@
+__pycache__/
+*.pyc
+*.pyo
+full_model.pkl
+embedded_system_network_security_dataset.csv
+brain.py
+data_preprocessing.py
+model_train.py
+requirements-train.txt

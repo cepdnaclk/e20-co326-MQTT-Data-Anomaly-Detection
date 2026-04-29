@@ -81,6 +81,7 @@ services:
     cpus: 0.25
     environment:
       PORT: 5001
+      MODEL_RUNTIME: edge-sim
     develop:
       watch:
         - action: rebuild
