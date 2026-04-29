@@ -1,0 +1,40 @@
+{
+    "team": [
+        {
+            "name": "Munasinghe S.L.",
+            "email": "e20259@eng.pdn.ac.lk",
+            "eNumber": "E/20/259"
+        },
+        {
+            "name": "R.V.C. Rathnaweera",
+            "email": "e20328@eng.pdn.ac.lk",
+            "eNumber": "E/20/328"
+        },
+        {
+            "name": "W.M.N. Dilshan",
+            "email": "e20455@eng.pdn.ac.lk",
+            "eNumber": "E/20/455"
+        },
+        {
+            "name": "U.P.S.D.Dulaj",
+            "email": "e20456@eng.pdn.ac.lk",
+            "eNumber": "E/20/456"
+        }
+    ],
+    "supervisors": [
+        {
+      "name": "Prof. Kamalanath Samarakoon",
+      "email": "kamalanath@eng.pdn.ac.lk"
+    }
+    ],
+    "media": [
+        {
+            "type": "youtube",
+            "title": "",
+            "url": "#"
+        }
+    ],
+    "tags": ["Industrial network project (CO326)"],
+    "image": "cover_page.jpg",
+    "thumbnail": "thumbnail.jpg"
+}
