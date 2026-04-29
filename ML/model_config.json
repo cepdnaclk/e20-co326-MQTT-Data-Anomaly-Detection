@@ -1,0 +1,29 @@
+{
+  "profile": {
+    "name": "esp32-s3-sim-stat-v1",
+    "algorithm": "statistical-thresholding",
+    "training_samples": 1500,
+    "features": [
+      "temperature",
+      "humidity"
+    ],
+    "target_device": "ESP32-S3 simulation"
+  },
+  "stats": {
+    "temperature": {
+      "mean": 27.6004,
+      "std": 4.4312
+    },
+    "humidity": {
+      "mean": 49.9741,
+      "std": 11.5036
+    }
+  },
+  "thresholds": {
+    "temperature_min": 19.0,
+    "temperature_max": 36.0,
+    "humidity_min": 29.0,
+    "humidity_max": 71.0,
+    "score_threshold": 2.6
+  }
+}

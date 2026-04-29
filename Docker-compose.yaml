@@ -1,10 +1,22 @@
-version: '3.8'
-
 services:
   mqtt:
     image: eclipse-mosquitto
     ports:
       - "1883:1883"
+
+  influxdb:
+    image: influxdb:2.7
+    ports:
+      - "8086:8086"
+    environment:
+      DOCKER_INFLUXDB_INIT_MODE: setup
+      DOCKER_INFLUXDB_INIT_USERNAME: admin
+      DOCKER_INFLUXDB_INIT_PASSWORD: admin12345
+      DOCKER_INFLUXDB_INIT_ORG: co326
+      DOCKER_INFLUXDB_INIT_BUCKET: industrial_data
+      DOCKER_INFLUXDB_INIT_ADMIN_TOKEN: co326-super-token
+    volumes:
+      - influxdb_data:/var/lib/influxdb2
 
   publisher:
     build: ./publisher
@@ -28,6 +40,13 @@ services:
       - "5000:5000"
     depends_on:
       - mqtt
+      - influxdb
+    environment:
+      MQTT_URL: mqtt://mqtt:1883
+      INFLUX_URL: http://influxdb:8086
+      INFLUX_TOKEN: co326-super-token
+      INFLUX_ORG: co326
+      INFLUX_BUCKET: industrial_data
     develop:
       watch:
         - action: rebuild
@@ -58,6 +77,10 @@ services:
     build: ./ML
     ports:
       - "5001:5001"
+    mem_limit: "96m"
+    cpus: 0.25
+    environment:
+      PORT: 5001
     develop:
       watch:
         - action: rebuild
@@ -65,3 +88,20 @@ services:
         - action: sync
           path: ./ML
           target: /app
+
+  grafana:
+    image: grafana/grafana:11.1.0
+    ports:
+      - "3000:3000"
+    depends_on:
+      - influxdb
+    environment:
+      GF_SECURITY_ADMIN_USER: admin
+      GF_SECURITY_ADMIN_PASSWORD: admin12345
+    volumes:
+      - ./grafana/provisioning:/etc/grafana/provisioning
+      - grafana_data:/var/lib/grafana
+
+volumes:
+  influxdb_data:
+  grafana_data:

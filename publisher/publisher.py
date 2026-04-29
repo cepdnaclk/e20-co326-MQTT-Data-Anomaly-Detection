@@ -6,7 +6,21 @@ from simulation import simulate_data
 
 # create publisher
 client = mqtt.Client()
-client.connect("mqtt", 1883, 60)   # service name
+
+
+def connect_with_retry(host, port, keepalive, retries=20, delay=2):
+    for attempt in range(1, retries + 1):
+        try:
+            client.connect(host, port, keepalive)
+            return
+        except OSError:
+            print(f"MQTT not ready yet, retrying ({attempt}/{retries})...")
+            time.sleep(delay)
+
+    raise ConnectionError("Unable to connect to MQTT broker after multiple retries.")
+
+
+connect_with_retry("mqtt", 1883, 60)   # service name
 
 TOPIC = "iot/sensor"
 
