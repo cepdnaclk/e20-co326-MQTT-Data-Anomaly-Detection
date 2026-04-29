@@ -19,12 +19,11 @@ def predict():
     payload = request.get_json(silent=True) or {}
 
     try:
-        temp = float(payload["temp"])
-        hum = float(payload["hum"])
+        temp = float(payload.get("motorTemperatureC", payload.get("temp")))
     except (KeyError, TypeError, ValueError):
-        return jsonify({"error": "temp and hum must be numeric"}), 400
+        return jsonify({"error": "motorTemperatureC must be numeric"}), 400
 
-    return jsonify(infer_anomaly(MODEL, temp, hum))
+    return jsonify(infer_anomaly(MODEL, temp))
 
 
 @app.get("/health")

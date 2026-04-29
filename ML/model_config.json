@@ -1,40 +1,32 @@
 {
   "profile": {
-    "name": "esp32-s3-sim-stat-v2",
+    "name": "motor-overheat-temp-only-v1",
     "algorithm": "statistical-thresholding",
     "training_samples": 1800,
     "features": [
-      "temperature",
-      "humidity"
+      "motorTemperatureC"
     ],
     "target_device": "ESP32-S3 simulation",
-    "runtime_class": "tiny-config"
+    "runtime_class": "tiny-config",
+    "use_case": "Motor overheating monitoring with relay trip simulation"
   },
   "stats": {
-    "temperature": {
-      "mean": 27.4672,
-      "std": 4.3641
-    },
-    "humidity": {
-      "mean": 49.6844,
-      "std": 11.3883
+    "motorTemperatureC": {
+      "mean": 62.0,
+      "std": 7.5
     }
   },
   "thresholds": {
-    "temperature_min": 19.0,
-    "temperature_max": 36.0,
-    "humidity_min": 29.0,
-    "humidity_max": 71.0,
-    "score_threshold": 2.4
+    "temperature_min": 30.0,
+    "temperature_max": 85.0,
+    "score_threshold": 2.6
   },
   "validation_examples": {
     "normal": [
-      27.37,
-      51.36
+      62.0
     ],
     "anomaly": [
-      27.71,
-      63.78
+      91.0
     ]
   }
 }

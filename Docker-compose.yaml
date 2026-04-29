@@ -4,6 +4,17 @@ services:
     ports:
       - "1883:1883"
 
+  node-red:
+    image: nodered/node-red:4.0.5
+    ports:
+      - "1880:1880"
+    depends_on:
+      - mqtt
+    environment:
+      FLOWS: flows.json
+    volumes:
+      - ./node-red:/data
+
   influxdb:
     image: influxdb:2.7
     ports:
@@ -40,6 +51,7 @@ services:
       - "5000:5000"
     depends_on:
       - mqtt
+      - node-red
       - influxdb
     environment:
       MQTT_URL: mqtt://mqtt:1883

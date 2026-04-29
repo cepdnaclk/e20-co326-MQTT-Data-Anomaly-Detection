@@ -43,24 +43,22 @@ def z_score(value, mean, std_dev):
     return abs(value - mean) / safe_std
 
 
-def infer_anomaly(model, temp, hum):
+def infer_anomaly(model, temp):
     stats = model["stats"]
     thresholds = model["thresholds"]
 
-    temp_z = z_score(temp, stats["temperature"]["mean"], stats["temperature"]["std"])
-    hum_z = z_score(hum, stats["humidity"]["mean"], stats["humidity"]["std"])
+    temp_z = z_score(
+        temp,
+        stats["motorTemperatureC"]["mean"],
+        stats["motorTemperatureC"]["std"],
+    )
 
     outside_hard_range = (
-        temp < thresholds["temperature_min"]
-        or temp > thresholds["temperature_max"]
-        or hum < thresholds["humidity_min"]
-        or hum > thresholds["humidity_max"]
+        temp < thresholds["temperature_min"] or temp > thresholds["temperature_max"]
     )
     anomaly_score = max(
         4.0 if outside_hard_range else 0.0,
         temp_z,
-        hum_z,
-        (temp_z + hum_z) / 2,
     )
     anomaly = outside_hard_range or anomaly_score >= thresholds["score_threshold"]
 
@@ -68,8 +66,7 @@ def infer_anomaly(model, temp, hum):
         "anomaly": anomaly,
         "anomaly_score": round(anomaly_score, 4),
         "features": {
-            "temperature_z": round(temp_z, 4),
-            "humidity_z": round(hum_z, 4),
+            "motor_temperature_z": round(temp_z, 4),
         },
         "model_profile": model["profile"],
     }
@@ -93,8 +90,8 @@ def model_diagnostics(model):
 
 
 def run_self_test(model):
-    normal_case = infer_anomaly(model, 27.5, 49.5)
-    anomaly_case = infer_anomaly(model, 42.0, 60.0)
+    normal_case = infer_anomaly(model, 62.0)
+    anomaly_case = infer_anomaly(model, 91.0)
 
     return {
         "status": "ok",

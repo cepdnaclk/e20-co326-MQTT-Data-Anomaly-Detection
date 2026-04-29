@@ -1,0 +1,153 @@
+[
+  {
+    "id": "motor_flow",
+    "type": "tab",
+    "label": "Motor-01 Sparkplug UNS Orchestration",
+    "disabled": false,
+    "info": "Bridges Motor-01 Sparkplug B telemetry into a UNS topic and performs relay trip interlock orchestration."
+  },
+  {
+    "id": "mqtt_broker",
+    "type": "mqtt-broker",
+    "name": "Mosquitto",
+    "broker": "mqtt",
+    "port": "1883",
+    "clientid": "node-red-motor-orchestrator",
+    "autoConnect": true,
+    "usetls": false,
+    "protocolVersion": "4",
+    "keepalive": "60",
+    "cleansession": true,
+    "birthTopic": "",
+    "birthQos": "0",
+    "birthPayload": "",
+    "birthMsg": {},
+    "closeTopic": "",
+    "closeQos": "0",
+    "closePayload": "",
+    "closeMsg": {},
+    "willTopic": "",
+    "willQos": "0",
+    "willPayload": "",
+    "willMsg": {},
+    "sessionExpiry": ""
+  },
+  {
+    "id": "sparkplug_dd_in",
+    "type": "mqtt in",
+    "z": "motor_flow",
+    "name": "Sparkplug DDATA Motor01",
+    "topic": "spBv1.0/CO326/DDATA/Plant1.Line1.MotorCell/Motor01",
+    "qos": "0",
+    "datatype": "utf8",
+    "broker": "mqtt_broker",
+    "nl": false,
+    "rap": false,
+    "rh": 0,
+    "inputs": 0,
+    "x": 150,
+    "y": 100,
+    "wires": [
+      [
+        "parse_sparkplug"
+      ]
+    ]
+  },
+  {
+    "id": "parse_sparkplug",
+    "type": "function",
+    "z": "motor_flow",
+    "name": "Parse Sparkplug JSON metrics",
+    "func": "let payload = msg.payload;\nif (typeof payload === \"string\") {\n    try {\n        payload = JSON.parse(payload);\n    } catch (error) {\n        node.warn(`Invalid Sparkplug payload: ${error.message}`);\n        return null;\n    }\n}\nmsg.payload = payload;\nreturn msg;",
+    "outputs": 1,
+    "timeout": 0,
+    "noerr": 0,
+    "initialize": "",
+    "finalize": "",
+    "libs": [],
+    "x": 410,
+    "y": 100,
+    "wires": [
+      [
+        "sparkplug_to_uns",
+        "overtemp_interlock"
+      ]
+    ]
+  },
+  {
+    "id": "sparkplug_to_uns",
+    "type": "function",
+    "z": "motor_flow",
+    "name": "Publish UNS telemetry",
+    "func": "const source = msg.payload || {};\nconst metricValues = {};\nfor (const metric of source.metrics || []) {\n    metricValues[metric.name] = metric.value;\n}\nconst values = Object.assign({}, metricValues, source.values || {});\nconst topic = \"uns/CO326/Plant1/Line1/MotorCell/Motor01/telemetry\";\nmsg.topic = topic;\nmsg.payload = JSON.stringify({\n    timestamp: source.timestamp || Date.now(),\n    namespace: \"UNS\",\n    unsPath: topic,\n    sourceNamespace: source.namespace || \"spBv1.0\",\n    sourceTopic: \"spBv1.0/CO326/DDATA/Plant1.Line1.MotorCell/Motor01\",\n    useCase: source.use_case || \"Motor overheating monitoring with relay trip simulation\",\n    groupId: source.group_id || \"CO326\",\n    edgeNodeId: source.edge_node_id || \"Plant1.Line1.MotorCell\",\n    deviceId: source.device_id || \"Motor01\",\n    values: {\n        motorTemperatureC: values.motorTemperatureC ?? values[\"Motor/WindingTemperature\"],\n        relayCommand: values.relayCommand ?? values[\"Relay/CommandedState\"],\n        relayFeedback: values.relayFeedback ?? values[\"Relay/FeedbackState\"],\n        motorState: values.motorState ?? values[\"Motor/RunState\"],\n        tripReason: values.tripReason ?? values[\"Motor/TripReason\"],\n        overTemperature: values.overTemperature ?? values[\"Motor/OverTemperature\"]\n    }\n});\nreturn msg;",
+    "outputs": 1,
+    "timeout": 0,
+    "noerr": 0,
+    "initialize": "",
+    "finalize": "",
+    "libs": [],
+    "x": 710,
+    "y": 70,
+    "wires": [
+      [
+        "uns_out"
+      ]
+    ]
+  },
+  {
+    "id": "overtemp_interlock",
+    "type": "function",
+    "z": "motor_flow",
+    "name": "Relay trip interlock",
+    "func": "const source = msg.payload || {};\nconst metricValues = {};\nfor (const metric of source.metrics || []) {\n    metricValues[metric.name] = metric.value;\n}\nconst values = Object.assign({}, metricValues, source.values || {});\nconst temperature = Number(values.motorTemperatureC ?? values[\"Motor/WindingTemperature\"]);\nconst relayFeedback = String(values.relayFeedback ?? values[\"Relay/FeedbackState\"] ?? \"UNKNOWN\").toUpperCase();\nconst lastTripAt = context.get(\"lastTripAt\") || 0;\nconst now = Date.now();\nif (!Number.isFinite(temperature) || temperature < 85 || relayFeedback === \"OPEN\" || now - lastTripAt < 10000) {\n    return null;\n}\ncontext.set(\"lastTripAt\", now);\nmsg.topic = \"spBv1.0/CO326/DCMD/Plant1.Line1.MotorCell/Motor01\";\nmsg.payload = JSON.stringify({\n    timestamp: now,\n    namespace: \"spBv1.0\",\n    group_id: \"CO326\",\n    edge_node_id: \"Plant1.Line1.MotorCell\",\n    device_id: \"Motor01\",\n    command: \"TRIP\",\n    requested_by: \"node-red-overtemp-interlock\",\n    reason: \"NODE_RED_OVER_TEMP_INTERLOCK\",\n    metrics: [\n        {\n            name: \"Relay/Command\",\n            datatype: \"String\",\n            value: \"TRIP\",\n            timestamp: now\n        }\n    ]\n});\nreturn msg;",
+    "outputs": 1,
+    "timeout": 0,
+    "noerr": 0,
+    "initialize": "",
+    "finalize": "",
+    "libs": [],
+    "x": 700,
+    "y": 140,
+    "wires": [
+      [
+        "sparkplug_cmd_out"
+      ]
+    ]
+  },
+  {
+    "id": "uns_out",
+    "type": "mqtt out",
+    "z": "motor_flow",
+    "name": "UNS telemetry out",
+    "topic": "",
+    "qos": "0",
+    "retain": "",
+    "respTopic": "",
+    "contentType": "",
+    "userProps": "",
+    "correl": "",
+    "expiry": "",
+    "broker": "mqtt_broker",
+    "x": 960,
+    "y": 70,
+    "wires": []
+  },
+  {
+    "id": "sparkplug_cmd_out",
+    "type": "mqtt out",
+    "z": "motor_flow",
+    "name": "Sparkplug DCMD out",
+    "topic": "",
+    "qos": "0",
+    "retain": "",
+    "respTopic": "",
+    "contentType": "",
+    "userProps": "",
+    "correl": "",
+    "expiry": "",
+    "broker": "mqtt_broker",
+    "x": 960,
+    "y": 140,
+    "wires": []
+  }
+]
