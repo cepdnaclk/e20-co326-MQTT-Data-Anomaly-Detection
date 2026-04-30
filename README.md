@@ -2,7 +2,7 @@
 
 ## Group Members
 
-- `E/20/259` Munasinghe S
+- `E/20/259` Munasinghe S.L.
 - `E/20/328` Rathnaweera R.V.C.
 - `E/20/455` Dilshan W.M.N
 - `E/20/456` Dulaj U.P.S.D.
@@ -27,7 +27,6 @@ Current main services in the project:
 ## Documentation
 
 - Architecture document: [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)
-- Historian notes: [HISTORIAN_BRANCH_NOTES.md](HISTORIAN_BRANCH_NOTES.md)
 
 ## Main Ports
 
