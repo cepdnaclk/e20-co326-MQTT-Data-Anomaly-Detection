@@ -1,0 +1,49 @@
+version: "3.8"
+
+# Edge AI + Industrial IoT — Docker Compose
+
+services:
+
+  # MQTT Publisher (simulated sensor)
+  publisher:
+    build:
+      context: ./python
+      dockerfile: Dockerfile
+    container_name: edge-publisher
+    command: python mqtt_publisher.py
+    restart: unless-stopped
+    environment:
+      - BROKER_HOST=${BROKER_HOST:-broker.hivemq.com}
+      - BROKER_PORT=${BROKER_PORT:-1883}
+      - GROUP_ID=${GROUP_ID:-group01}
+
+  # Edge AI Processor
+  edge-ai:
+    build:
+      context: ./python
+      dockerfile: Dockerfile
+    container_name: edge-ai-processor
+    command: python edge_ai_processor.py
+    restart: unless-stopped
+    depends_on:
+      - publisher
+    environment:
+      - BROKER_HOST=${BROKER_HOST:-broker.hivemq.com}
+      - BROKER_PORT=${BROKER_PORT:-1883}
+      - GROUP_ID=${GROUP_ID:-group01}
+
+  #  Node-RED Dashboard 
+  nodered:
+    image: nodered/node-red:latest
+    container_name: edge-nodered
+    ports:
+      - "1880:1880"
+    volumes:
+      - nodered_data:/data
+      - ./node-red/flows.json:/data/flows.json
+    restart: unless-stopped
+    environment:
+      - TZ=Asia/Colombo
+
+volumes:
+  nodered_data:
