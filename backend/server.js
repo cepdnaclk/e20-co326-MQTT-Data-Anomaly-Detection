@@ -143,7 +143,7 @@ client.on("message", async (topic, message) => {
       return;
     }
 
-    const modelResult = await inferMotorAnomaly(telemetry.motorTemperatureC);
+    const modelResult = await inferMotorAnomaly(telemetry);
     const rul = estimateRul(telemetry, modelResult.anomalyScore);
 
     latestRecord = {
@@ -223,16 +223,20 @@ function metricsToValues(metrics) {
   }, {});
 }
 
-async function inferMotorAnomaly(motorTemperatureC) {
+async function inferMotorAnomaly(telemetry) {
   try {
     const response = await axios.post(`${AI_BRAIN_URL}/predict`, {
-      motorTemperatureC,
+      motorTemperatureC: telemetry.motorTemperatureC,
+      relayCommand: telemetry.relayCommand,
+      relayFeedback: telemetry.relayFeedback,
+      overTemperature: telemetry.overTemperature
     });
     return {
       anomaly: Boolean(response.data.anomaly),
       anomalyScore: Number(response.data.anomaly_score ?? 0),
-      modelProfile: response.data.model_profile ?? null,
+      modelProfile: response.data.model_profile ?? "XGB-IsoForest-Hybrid",
     };
+    
   } catch (err) {
     console.error("AI Brain Error:", err.message);
     return {

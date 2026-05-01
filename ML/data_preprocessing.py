@@ -12,23 +12,34 @@ sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
 from publisher.simulation import simulate_data_for_ML_training
 
+def encode_state(state_str):
+    mapping = {"AUTO": 0, "TRIP": 1, "RESET": 2, "CLOSED": 0, "OPEN": 1}
+    return mapping.get(state_str, 0)
 
 def data_preprocessing():
     # read data
-    data = [json.loads(simulate_data_for_ML_training()) for _ in range(5000)]
-    data = pd.DataFrame(data)
+    raw_data = [json.loads(simulate_data_for_ML_training()) for _ in range(5000)]
+    data = pd.DataFrame(raw_data)
 
+    # conver string to int
+    data['relayCommand'] = data['relayCommand'].apply(encode_state)
+    data['relayFeedback'] = data['relayFeedback'].apply(encode_state)
+
+
+    # remove non numeric data
+    if 'tripReason' in data.columns:
+        data = data.drop(columns=['tripReason'])
 
     # corelation matrix
     corr_matrix = data.corr()
-
-    # heat mapp
+    
+    # show corr mat
     sns.heatmap(corr_matrix, cmap="coolwarm")
     plt.title("Correlation Matrix")
-    #plt.show()
+    plt.show()
 
     # print counts
-    print(data['label'].value_counts())
+    print("Target counts:\n",data['label'].value_counts())
 
     # visualize data
     """sns.countplot(data=data, x='label')
