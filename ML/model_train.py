@@ -6,6 +6,16 @@ from sklearn.ensemble import IsolationForest
 import numpy as np
 from sklearn.metrics import f1_score
 
+# data preprocessing
+X_train_balanced, y_train_balanced, X_test, y_test = data_preprocessing()
+
+
+# ensure data order is correct
+feature_order = ['motorTemperatureC', 'relayCommand', 'relayFeedback', 'overTemperature']
+X_train_balanced = X_train_balanced[feature_order]
+X_test = X_test[feature_order]
+
+
 # model
 model = XGBClassifier(
     n_estimators=200,
@@ -16,8 +26,6 @@ model = XGBClassifier(
     eval_metric="logloss"
 )
 
-# data preprocessing
-X_train_balanced, y_train_balanced, X_test, y_test = data_preprocessing()
 
 # XGBoost train
 model.fit(X_train_balanced, y_train_balanced)
@@ -33,7 +41,6 @@ iso_model = IsolationForest(
 X_train_normal = X_train_balanced[y_train_balanced == 0]
 
 iso_model.fit(X_train_normal)
-
 
 # XGBoost probability
 y_proba = model.predict_proba(X_test)[:, 1]
@@ -61,7 +68,6 @@ print(threshold)
 # evaluate model
 print(confusion_matrix(y_test, y_pred))
 print(classification_report(y_test, y_pred))
-
 """
 
 thresholds = [0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9]
@@ -115,7 +121,7 @@ xgb_pred = (y_proba > threshold).astype(int)
 final_pred = []
 
 for x, i in zip(xgb_pred, iso_pred):
-    if x == 1 and i == 1:
+    if x == 1 or i == 1:
         final_pred.append(1)
     else:
         final_pred.append(0)
@@ -143,7 +149,7 @@ joblib.dump({
     "xgb_model": model,
     "iso_model": iso_model,
     "threshold": 0.8,
-    "strategy": "and"
+    "strategy": "or"
 }, save_path)
 
 print(f"Model saved successfully at: {save_path}")

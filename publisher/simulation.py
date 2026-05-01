@@ -184,17 +184,37 @@ def get_birth_payload():
 
 
 def simulate_data_for_ML_training():
-    temperature = random.uniform(45.0, 95.0)
-    label = int(temperature >= TEMP_TRIP_C or random.random() < 0.15)
+   
+    # initialize simulation state
+    sim = MotorOverheatSimulation()
+    
+    # used apply command
+    test_command = random.choice(["AUTO", "TRIP", "NONE"])
+    if test_command != "NONE":
+        sim.apply_command({"command": test_command})
 
-    if label:
-        temperature += random.uniform(5.0, 15.0)
+    # random starting temp
+    sim.temperature_c = random.uniform(35.0, 95.0)
 
-    data = {
-        "motorTemperatureC": round(temperature, 2),
+    # using sample() for overload/heating/cooling logic
+    for _ in range(random.randint(3, 8)):
+        latest_payload = sim.sample()
+
+    # extract values from same payload
+    values = latest_payload["values"]
+    
+    # define labels
+    label = 1 if values["motorState"] == "TRIPPED" else 0
+
+    training_data = {
+        "motorTemperatureC": values["motorTemperatureC"],
+        "relayCommand": values["relayCommand"],
+        "relayFeedback": values["relayFeedback"],
+        "overTemperature": int(values["overTemperature"]),
         "label": label,
+        "tripReason": values["tripReason"]
     }
 
-    payload = json.dumps(data)
-    print(payload)
+    payload = json.dumps(training_data)
+    print(f"Full-Logic Training Sample: {payload}")
     return payload
